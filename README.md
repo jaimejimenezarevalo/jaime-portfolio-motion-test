@@ -30,3 +30,9 @@ assets/
 - Desktop browsers receive the full scroll-linked transformation.
 - Mobile devices use a compact header and menu so the animation does not become crowded.
 - Visitors who prefer reduced motion receive a simplified transition.
+
+
+## Version 3 adjustments
+
+- The compact vertical divider remains hidden until the title has settled into the header.
+- The intro spacer now ends immediately below the assembled header, reducing the blank page before the About section.

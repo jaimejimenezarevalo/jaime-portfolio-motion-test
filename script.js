@@ -140,8 +140,10 @@
     horizontalDivider.style.transform = `translate3d(${horizontalX}px, ${lerp(m.dividerStartY, m.dividerStartY - 15, horizontalProgress)}px, 0)`;
     horizontalDivider.style.opacity = String(clamp(1 - p * 1.65, 0, 1));
 
-    verticalDivider.style.transform = `translate3d(${m.dividerFinalX}px, ${m.dividerFinalY}px, 0) scaleY(${clamp((p - .42) / .58, 0, 1)})`;
-    verticalDivider.style.opacity = String(clamp((p - .38) / .42, 0, 1));
+    // Keep the compact divider completely out of sight during the move.
+    // It appears only once the identity has essentially reached its final position.
+    verticalDivider.style.transform = `translate3d(${m.dividerFinalX}px, ${m.dividerFinalY}px, 0) scaleY(1)`;
+    verticalDivider.style.opacity = String(clamp((raw - .94) / .06, 0, 1));
 
     links.forEach((link, index) => {
       const item = m.linkMetrics[index];

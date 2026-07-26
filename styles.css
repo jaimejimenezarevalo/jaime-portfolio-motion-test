@@ -159,7 +159,7 @@ h1, h2, h3, p { margin-top: 0; }
 .scroll-cue span { display: inline-block; animation: bounce 1.5s ease-in-out infinite; }
 @keyframes bounce { 50% { transform: translateY(5px); } }
 
-.intro-stage { height: calc(100vh + 620px); }
+.intro-stage { height: calc(620px + var(--header-height)); }
 
 .mobile-menu-button,
 .mobile-navigation { display: none; }
