@@ -60,6 +60,7 @@ h1, h2, h3, p { margin-top: 0; }
 .motion-logo,
 .motion-identity,
 .motion-divider,
+.motion-divider-vertical,
 .motion-nav a,
 .scroll-cue {
   position: absolute;
@@ -114,6 +115,18 @@ h1, h2, h3, p { margin-top: 0; }
   height: 1px;
   background: rgba(255,255,255,.75);
   transform-origin: center center;
+}
+
+.motion-divider-vertical {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1px;
+  height: 64px;
+  background: rgba(255,255,255,.55);
+  opacity: 0;
+  transform-origin: center top;
+  will-change: transform, opacity;
 }
 
 .motion-nav { position: static; }

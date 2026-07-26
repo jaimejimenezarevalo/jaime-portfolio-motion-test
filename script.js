@@ -2,7 +2,10 @@
   const header = document.querySelector('#motion-header');
   const logo = document.querySelector('#motion-logo');
   const identity = document.querySelector('#motion-identity');
-  const divider = document.querySelector('#motion-divider');
+  const identityName = identity.querySelector('strong');
+  const identityTitle = identity.querySelector('small');
+  const horizontalDivider = document.querySelector('#motion-divider');
+  const verticalDivider = document.querySelector('#motion-divider-vertical');
   const links = [...document.querySelectorAll('#motion-nav a')];
   const cue = document.querySelector('#scroll-cue');
   const mobileButton = document.querySelector('.mobile-menu-button');
@@ -18,36 +21,53 @@
   const lerp = (start, end, progress) => start + (end - start) * progress;
   const ease = (t) => 1 - Math.pow(1 - t, 3);
 
+  function resetDesktopStyles() {
+    identityName.style.fontSize = '';
+    identityTitle.style.fontSize = '';
+    identity.style.transform = '';
+    horizontalDivider.style.transform = '';
+    horizontalDivider.style.opacity = '';
+    verticalDivider.style.transform = '';
+    verticalDivider.style.opacity = '';
+  }
+
   function measure() {
     if (mobile.matches) {
       metrics = null;
       return;
     }
 
+    resetDesktopStyles();
+
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const headerHeight = 104;
     const side = Math.max(24, vw * 0.018);
 
-    // Logo final position.
     const logoSize = 76;
     const logoX = side;
     const logoY = (headerHeight - logoSize) / 2;
 
-    // Identity starts centered and finishes to the right of the JJ monogram.
+    const startNameSize = parseFloat(getComputedStyle(identityName).fontSize);
+    const startTitleSize = parseFloat(getComputedStyle(identityTitle).fontSize);
+    const finalNameSize = clamp(vw * 0.02, 16.8, 23.2);
+    const finalTitleSize = 13.3;
+
     const identityWidth = identity.offsetWidth;
     const identityHeight = identity.offsetHeight;
     const identityStartX = (vw - identityWidth) / 2;
-    const identityStartY = Math.max(54, vh * 0.20);
+    const identityStartY = Math.max(54, vh * 0.18);
     const identityFinalX = logoX + logoSize + 28;
-    const identityFinalY = 27;
+    const identityFinalY = 25;
 
-    // Nav starts as a vertical list slightly right of center.
-    const initialNavCenterX = vw * 0.67;
-    const initialNavStartY = Math.max(vh * 0.52, identityStartY + identityHeight + 150);
+    // Approximate final text width from the measured opening width.
+    const finalIdentityWidth = identityWidth * (finalNameSize / startNameSize);
+
+    // The intro navigation is now perfectly centered under the title and rule.
+    const initialNavCenterX = vw / 2;
+    const initialNavStartY = Math.max(vh * 0.50, identityStartY + identityHeight + 125);
     const initialGap = 42;
 
-    // Nav finishes as a horizontal row aligned to the right.
     const finalGap = clamp(vw * 0.027, 22, 45);
     const widths = links.map((link) => link.offsetWidth);
     const totalWidth = widths.reduce((sum, width) => sum + width, 0) + finalGap * (links.length - 1);
@@ -63,11 +83,13 @@
       return { startX, startY, finalX, finalY };
     });
 
-    // Horizontal line becomes the vertical separator beside the identity block.
     const dividerStartWidth = Math.min(vw * 0.70, 860);
     const dividerStartX = (vw - dividerStartWidth) / 2;
-    const dividerStartY = Math.max(vh * 0.42, identityStartY + identityHeight + 72);
-    const dividerFinalX = identityFinalX + Math.min(identityWidth * 0.83, 455);
+    const dividerStartY = Math.max(vh * 0.40, identityStartY + identityHeight + 68);
+
+    // Put the final separator directly after the compact identity block,
+    // matching the original header rather than landing among the nav links.
+    const dividerFinalX = identityFinalX + finalIdentityWidth + 28;
     const dividerFinalY = 20;
 
     metrics = {
@@ -79,6 +101,10 @@
       identityStartY,
       identityFinalX,
       identityFinalY,
+      startNameSize,
+      startTitleSize,
+      finalNameSize,
+      finalTitleSize,
       dividerStartX,
       dividerStartY,
       dividerFinalX,
@@ -96,27 +122,30 @@
     const p = ease(raw);
     const m = metrics;
 
-    const currentHeight = lerp(m.vh, m.headerHeight, p);
-    header.style.height = `${currentHeight}px`;
+    header.style.height = `${lerp(m.vh, m.headerHeight, p)}px`;
 
     logo.style.transform = `translate3d(${m.logoX}px, ${m.logoY}px, 0) scale(${lerp(.78, 1, p)})`;
     logo.style.opacity = String(clamp((p - .24) / .42, 0, 1));
 
-    const identityScale = lerp(1, .39, p);
-    const identityX = lerp(m.identityStartX, m.identityFinalX, p);
-    const identityY = lerp(m.identityStartY, m.identityFinalY, p);
-    identity.style.transform = `translate3d(${identityX}px, ${identityY}px, 0) scale(${identityScale})`;
+    identityName.style.fontSize = `${lerp(m.startNameSize, m.finalNameSize, p)}px`;
+    identityTitle.style.fontSize = `${lerp(m.startTitleSize, m.finalTitleSize, p)}px`;
+    identity.style.transform = `translate3d(${lerp(m.identityStartX, m.identityFinalX, p)}px, ${lerp(m.identityStartY, m.identityFinalY, p)}px, 0)`;
 
-    const dividerX = lerp(m.dividerStartX, m.dividerFinalX, p);
-    const dividerY = lerp(m.dividerStartY, m.dividerFinalY, p);
-    const dividerScaleX = lerp(1, 84 / m.dividerStartWidth, p);
-    divider.style.transform = `translate3d(${dividerX}px, ${dividerY}px, 0) rotate(${lerp(0, 90, p)}deg) scaleX(${dividerScaleX})`;
+    // A cross-fade between two rules creates a clean visual morph without
+    // rotating a long bar through the navigation.
+    const horizontalProgress = clamp(p / .68, 0, 1);
+    const horizontalWidth = lerp(m.dividerStartWidth, m.dividerStartWidth * .18, horizontalProgress);
+    const horizontalX = (window.innerWidth - horizontalWidth) / 2;
+    horizontalDivider.style.width = `${horizontalWidth}px`;
+    horizontalDivider.style.transform = `translate3d(${horizontalX}px, ${lerp(m.dividerStartY, m.dividerStartY - 15, horizontalProgress)}px, 0)`;
+    horizontalDivider.style.opacity = String(clamp(1 - p * 1.65, 0, 1));
+
+    verticalDivider.style.transform = `translate3d(${m.dividerFinalX}px, ${m.dividerFinalY}px, 0) scaleY(${clamp((p - .42) / .58, 0, 1)})`;
+    verticalDivider.style.opacity = String(clamp((p - .38) / .42, 0, 1));
 
     links.forEach((link, index) => {
       const item = m.linkMetrics[index];
-      const x = lerp(item.startX, item.finalX, p);
-      const y = lerp(item.startY, item.finalY, p);
-      link.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+      link.style.transform = `translate3d(${lerp(item.startX, item.finalX, p)}px, ${lerp(item.startY, item.finalY, p)}px, 0)`;
     });
 
     cue.style.opacity = String(clamp(1 - raw * 4, 0, 1));
@@ -156,7 +185,6 @@
     });
   });
 
-  // Highlight the section currently in view after the intro is assembled.
   const sections = [...document.querySelectorAll('main section[id], footer[id]')];
   const observer = new IntersectionObserver((entries) => {
     const visible = entries
